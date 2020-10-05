@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+
+<html>
+    <head>
+
+        <script type = "text/javascript">
+            
+            var from;
+            var to;
+            var isOpen = false;
+            
+            var ws = null;
+            
+            function WebSocketTest() {
+
+                if ("WebSocket" in window) {
+                    alert("WebSocket is supported by your Browser!");
+
+                    // Let us open a web socket
+                    from = prompt("Podaj imię");
+                    ws = new WebSocket("ws://localhost:8025/websockets/chat/" + from);
+
+                    ws.onopen = function () {
+                        isOpen = true;
+                    };
+
+                    ws.onmessage = function (evt) {
+                        var received_msg = evt.data;
+                        //alert(received_msg.content);
+                        //console.log(received_msg)
+                        var obj = JSON.parse(received_msg);
+                        if (obj.to==from || obj.from==from) {
+                            var txt = obj.from+": "+obj.content;
+                            var node = document.createElement("LI");                 // Create a <li> node
+                            var textnode = document.createTextNode(txt);         // Create a text node
+                            node.appendChild(textnode);                              // Append the text to <li>
+                            document.getElementById("message").appendChild(node);     // Append <li> to <ul> with id="myList"
+                        }
+                    };
+
+                    ws.onclose = function () {
+                        isOpen = false;
+                        // websocket is closed.
+                        alert("Connection is closed...");
+                    };
+                } else {
+                    // The browser doesn't support WebSocket
+                    alert("WebSocket NOT supported by your Browser!");
+                }
+            }
+            
+            function send () {
+                if (!isOpen) {
+                    alert("Najpierw połącz");
+                    return;
+                }
+                to = prompt("Podaj imię odbiorcy");
+                var message = prompt("msg: ");
+                var obj = { from: from, to: to, content: message };
+                if (message!='' && message!='undefined') {
+                    ws.send(JSON.stringify(obj));
+                }
+                //alert("Message is sent...");
+            }
+        </script>
+
+    </head>
+
+    <body>
+        <div id = "sse">
+            <a href = "javascript:WebSocketTest()">Run WebSocket</a>
+            <br>
+            <a href = "javascript:send()">Send</a>
+        </div>
+
+        <ul id="message"></ul>
+    </body>
+</html>
